@@ -11,4 +11,21 @@ public class HiddenGroundContainer : MonoBehaviour
             child.gameObject.tag = "Hidden";
         }
     }
+
+    internal void MakeChildrenNotActive()
+    {
+        foreach (var child in GetComponentsInChildren<GroundCube>())
+        {
+            child.gameObject.SetActive(false);
+        }
+    }
+    
+    internal void MakeChildrenActive()
+    {
+        foreach (var child in GetComponentsInChildren<GroundCube>())
+        {
+            child.gameObject.SetActive(true);
+        }
+    }
+    
 }

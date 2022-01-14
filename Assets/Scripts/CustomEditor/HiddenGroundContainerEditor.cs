@@ -19,5 +19,15 @@ public class HiddenGroundContainerEditor : Editor
       {
          _hgContainer.MakeChildrenTagHidden();
       }
+      
+      if (GUILayout.Button("Make Children Not Active"))
+      {
+         _hgContainer.MakeChildrenNotActive();
+      }
+      
+      if (GUILayout.Button("Make Children Active"))
+      {
+         _hgContainer.MakeChildrenActive();
+      }
    }
 }

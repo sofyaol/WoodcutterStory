@@ -9,6 +9,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private Rigidbody _rigidbody;
     [SerializeField] private Joystick _joystick;
+    private readonly Vector3 _checkGroundOffset = new Vector3(0, 0, -1);
 
   
     private float _movementSpeed = 0;
@@ -26,21 +27,23 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void FixedUpdate()
-    { 
-        Vector3 offset = new Vector3(_joystick.Horizontal, 0, _joystick.Vertical);
-      Vector3 direction = transform.position - offset;
-      _rigidbody.MovePosition(transform.position + offset * (_movementSpeed * Time.deltaTime));
-
+    {
         if (_joystick.Horizontal != 0 || _joystick.Vertical != 0)
         {
-            transform.LookAt(direction);
-            SpeedIncrease();
+            Vector3 offset = new Vector3(_joystick.Horizontal, 0, _joystick.Vertical);
+                Vector3 direction = transform.position - offset;
+                _rigidbody.MovePosition(transform.position + offset * (_movementSpeed * Time.deltaTime));
+
+                transform.LookAt(direction);
+                SpeedIncrease();
         }
 
         else
         {
             SpeedDecrease();
         }
+        
+        Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.down +_checkGroundOffset));
     }
 
     private void SpeedDecrease()
@@ -56,5 +59,19 @@ public class PlayerMovement : MonoBehaviour
         {
             _movementSpeed = _runSpeed;
         }
+    }
+
+    private bool CheckGround()
+    {
+        RaycastHit hit;
+        
+       if(Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down +_checkGroundOffset), out hit))
+       {
+           if (hit.transform.gameObject.layer == 6)
+           {
+               return true;
+           }
+       }
+       return false;
     }
 }

@@ -1,29 +1,83 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
+[SelectionBase]
+[RequireComponent(typeof(BoxCollider))]
 public class GroundCube : MonoBehaviour
 { 
-   private GroundCube _leftNeighbor;
-   private GroundCube _rightNeighbor;
-   private GroundCube _backNeighbor;
-   private GroundCube _forwardNeighbor;
+    [SerializeField] private int _price;
+    [SerializeField] private ResourceType _resourceType;
+    public ResourceType ResourceType => _resourceType;
+    public int Price => _price; 
+    [SerializeField] private GroundCube _leftNeighbor;
+  [SerializeField] private GroundCube _rightNeighbor;
+  [SerializeField] private GroundCube _backNeighbor;
+  [SerializeField] private GroundCube _forwardNeighbor;
+  [SerializeField] private GroundCanvas _canvas;
+  private GroundMesh _groundMesh;
+  private BoxCollider _collider;
 
-   [SerializeField] private BoxCollider _leftBoxCollider;
-   [SerializeField] private BoxCollider _rightBoxCollider;
-   [SerializeField] private BoxCollider _backBoxCollider;
-   [SerializeField] private BoxCollider _forwardBoxCollider;
-
-   float _rayDistance = 7f;
+  float _rayDistance = 7f;
 
     void Awake()
     {
+        foreach (var child in GetComponentsInChildren<GroundSide>())
+        {
+            switch (child.GroundSideType) // 1. иниц поля GroundSide
+            {
+                case GroundSideType.Forward:
+                    child.NeighbourGroundCube = _forwardNeighbor;
+                    break;
+
+                case GroundSideType.Back:
+                    child.NeighbourGroundCube = _backNeighbor;
+                    break;
+
+                case GroundSideType.Left:
+                    child.NeighbourGroundCube = _leftNeighbor;
+                    break;
+
+                case GroundSideType.Right:
+                    child.NeighbourGroundCube = _rightNeighbor;
+                    break;
+            }
+        }
+
+        _groundMesh = GetComponentInChildren<GroundMesh>();
+         _canvas = GetComponentInChildren<GroundCanvas>();
+         _collider = GetComponent<BoxCollider>();
+    }
+
+    void Start()
+    {
+        if (CompareTag("Hidden"))
+        {
+            _groundMesh.MeshRenderer.enabled = false;
+            _collider.enabled = false;
+        }
+        _canvas.SetPrice(Price);
+        _canvas.SetResource(ResourceType);
+        _canvas.gameObject.SetActive(false);
+    }
+
+    private void TryBuyGround() 
+    {                  
+        if (Player.Instance.Coin >= Price)
+        {
+            _canvas.SetGreenBackground();
+            StartCoroutine("Selling");
+        }
+
+        else
+        {
+            _canvas.SetRedBackground();
+        }
         
     }
 
-    
-    
-    
     internal void FindNeighbors()
     {
         FindNeighborOf(transform.forward, out _forwardNeighbor);
@@ -38,10 +92,74 @@ public class GroundCube : MonoBehaviour
         if (Physics.Raycast(transform.position, direction, out raycastHit, _rayDistance))
         {
            neighbor = raycastHit.collider.gameObject.GetComponent<GroundCube>();
+           UnityEditor.EditorUtility.SetDirty(neighbor); // for saving changes we made with UnityEditor
         }
         else
         {
             neighbor = null;
         }
     }
+
+    public void SaleOfGroundSetActive(bool active)
+    {
+        _canvas.gameObject.SetActive(active);
+        _groundMesh.MeshRenderer.enabled = active;
+        
+        if (!active)
+        {
+            _groundMesh.SetOriginMaterial();
+            return;
+        }
+        
+        _groundMesh.SetFadeMaterial();
+        TryBuyGround();
+    }
+
+    private IEnumerator Selling()
+    {
+        yield return new WaitForSeconds(1.5f);
+        while (true)
+        {
+            Player.Instance.Coin--;
+            _price--;
+            _canvas.SetPrice(_price);
+
+            if (_price == 0)
+            {
+                MakeGroundNotHidden();
+                yield break;
+            }
+
+            yield return new WaitForSeconds(0.1f); // сделать Data с временем 
+        }
+    }
+
+    private void MakeGroundNotHidden()
+    {
+        _canvas.gameObject.SetActive(false);
+        tag = "Untagged";
+        foreach (var myGroundSide in GetComponentsInChildren<GroundSide>())
+        {
+            if (myGroundSide.NeighbourGroundCube != null)
+            {
+                myGroundSide.DeleteUselessWall();
+
+                foreach (var neighborGroundSide in
+                    myGroundSide.NeighbourGroundCube.GetComponentsInChildren<GroundSide>())
+                {
+                    neighborGroundSide.DeleteUselessWall();
+                }
+            }
+        }
+
+        _collider.enabled = true;
+        _groundMesh.SetOriginMaterial();
+
+    }
+
+    public void StopSelling()
+    {
+        StopCoroutine("Selling");
+    }
+
 }
