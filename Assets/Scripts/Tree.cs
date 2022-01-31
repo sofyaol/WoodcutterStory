@@ -7,8 +7,7 @@ public class Tree : MonoBehaviour
 {
     private ParticleSystem _dieParticle;
     private MeshRenderer _meshRenderer;
-
-  //  [SerializeField] private GameObject _resource;
+    
     [SerializeField] private ResourceExplosion _resourceExplosion;
 
     [Tooltip("Count of resources given by the tree")]
@@ -16,6 +15,8 @@ public class Tree : MonoBehaviour
 
     internal int ResourceCount { get; }
     private int _health = 3;
+
+    internal Action dying; 
     
     private int Health
     {
@@ -30,6 +31,7 @@ public class Tree : MonoBehaviour
 
     private void Die()
     {
+        dying.Invoke();
         foreach (var boxCollider in GetComponents<BoxCollider>())
         {
             boxCollider.enabled = false;
@@ -46,19 +48,15 @@ public class Tree : MonoBehaviour
         _dieParticle = GetComponentInChildren<ParticleSystem>();
         _meshRenderer = GetComponent<MeshRenderer>();
     }
+    
 
-    private void OnTriggerEnter(Collider other)
-    {
-        
-        if (other.gameObject.layer == 7) // 7 layer - player
-        {
-            
-            transform.DOShakeRotation(0.5f, 15f, 5).OnComplete(NormalizeRotation);
-            Health--;
-        }
-    }
-
-    void NormalizeRotation()
+   internal void MakeHit()
+   {
+       transform.DOShakeRotation(0.5f, 15f, 5).OnComplete(NormalizeRotation);
+       Health--;
+   }
+   
+   void NormalizeRotation()
     {
         transform.DORotate(new Vector3(0, 0, 0), 0.5f);
     }
