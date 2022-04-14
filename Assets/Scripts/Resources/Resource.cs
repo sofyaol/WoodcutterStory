@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using DefaultNamespace;
 using UnityEngine;
 
 public class Resource : MonoBehaviour
@@ -13,11 +14,11 @@ public class Resource : MonoBehaviour
         set => _value = value;
     }
 
+    
     private void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.layer == 7) // 7 layer - player
         {
-            Debug.Log(other.name);
             if (_resourceType == ResourceType.Wood)
             {
                 Player.Instance.Wood += _value;
@@ -27,10 +28,11 @@ public class Resource : MonoBehaviour
             {
                 Player.Instance.Coin += _value;
             }
-            
-            Destroy(gameObject);
+
+            gameObject.GetComponent<ResourceMovement>()?.ResetChanges();
+            gameObject.SetActive(false);
+            // Destroy(gameObject);
         }
     }
-    
     
 }

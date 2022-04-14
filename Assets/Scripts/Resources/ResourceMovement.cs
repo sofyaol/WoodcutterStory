@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
+[RequireComponent(typeof(Collider))]
+[RequireComponent(typeof(Rigidbody))]
 public class ResourceMovement : MonoBehaviour
 {
     private Transform _playerTransform;
@@ -14,11 +17,13 @@ public class ResourceMovement : MonoBehaviour
     [Tooltip("The time it takes for the resource to reach the player (seconds).")]
     [SerializeField] private int moveSpeed = 3;
     private Collider _collider;
+    private Rigidbody _rigidbody;
 
     private void Start()
     {
         _playerTransform = Player.Instance.transform;
         _collider = GetComponent<Collider>();
+        _rigidbody = GetComponent<Rigidbody>();
         _timeLeft = UnityEngine.Random.Range(_minTimeLeft, _maxTimeLeft);
     }
 
@@ -29,7 +34,8 @@ public class ResourceMovement : MonoBehaviour
             _timeLeft -= Time.deltaTime;
             return;
         }
-
+        
+        _rigidbody.useGravity = false;
         FollowPlayer(moveSpeed);
     }
 
@@ -43,5 +49,13 @@ public class ResourceMovement : MonoBehaviour
            _collider.isTrigger = true;
            _isTrigger = true;
        }
+    }
+
+    public void ResetChanges()
+    {
+        _timeLeft = UnityEngine.Random.Range(_minTimeLeft, _maxTimeLeft);
+        _collider.isTrigger = false;
+        _rigidbody.useGravity = true;
+        _isTrigger = false;
     }
 }

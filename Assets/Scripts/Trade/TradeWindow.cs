@@ -16,7 +16,6 @@ public class TradeWindow : MonoBehaviour
     private Slider _slider;
     
     private int _maxValue;
-    private int _minValue = 0;
 
     private int _woodForTrade;
     private int _coinForTrade;

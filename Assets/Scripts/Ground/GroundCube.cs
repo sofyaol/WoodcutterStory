@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEditor;
 
 [SelectionBase]
 [RequireComponent(typeof(BoxCollider))]
@@ -17,12 +18,13 @@ public class GroundCube : MonoBehaviour
   [SerializeField] private GroundCube _backNeighbor;
   [SerializeField] private GroundCube _forwardNeighbor;
   [SerializeField] private GroundCanvas _canvas;
-  private GroundMesh _groundMesh;
+  [SerializeField] private GroundMesh _groundMesh;
   private BoxCollider _collider;
+  private DecorationsParent _decorationsParent;
 
-  float _rayDistance = 7f;
-
-    void Awake()
+  float _rayDistance = 5f;
+  
+  void Awake()
     {
         foreach (var child in GetComponentsInChildren<GroundSide>())
         {
@@ -49,6 +51,7 @@ public class GroundCube : MonoBehaviour
         _groundMesh = GetComponentInChildren<GroundMesh>();
          _canvas = GetComponentInChildren<GroundCanvas>();
          _collider = GetComponent<BoxCollider>();
+         _decorationsParent = GetComponentInChildren<DecorationsParent>();
     }
 
     void Start()
@@ -57,10 +60,11 @@ public class GroundCube : MonoBehaviour
         {
             _groundMesh.MeshRenderer.enabled = false;
             _collider.enabled = false;
+            _decorationsParent.gameObject.SetActive(false);
         }
-        _canvas.SetPrice(Price);
-        _canvas.SetResource(ResourceType);
-        _canvas.gameObject.SetActive(false);
+        _canvas?.SetPrice(Price);
+        _canvas?.SetResource(ResourceType);
+        _canvas?.gameObject.SetActive(false);
     }
 
     private void TryBuyGround() 
@@ -78,8 +82,9 @@ public class GroundCube : MonoBehaviour
         
     }
 
-    internal void FindNeighbors()
+    public void FindNeighbors()
     {
+
         FindNeighborOf(transform.forward, out _forwardNeighbor);
         FindNeighborOf((transform.forward * -1), out _backNeighbor);
         FindNeighborOf(transform.right, out _rightNeighbor);
@@ -91,8 +96,8 @@ public class GroundCube : MonoBehaviour
         RaycastHit raycastHit;
         if (Physics.Raycast(transform.position, direction, out raycastHit, _rayDistance))
         {
-           neighbor = raycastHit.collider.gameObject.GetComponent<GroundCube>();
-           UnityEditor.EditorUtility.SetDirty(neighbor); // for saving changes we made with UnityEditor
+            neighbor = raycastHit.collider.gameObject.GetComponent<GroundCube>();
+            UnityEditor.EditorUtility.SetDirty(neighbor); // for saving changes we made with UnityEditor
         }
         else
         {
@@ -154,6 +159,7 @@ public class GroundCube : MonoBehaviour
 
         _collider.enabled = true;
         _groundMesh.SetOriginMaterial();
+        _decorationsParent.gameObject.SetActive(true);
 
     }
 
@@ -161,5 +167,4 @@ public class GroundCube : MonoBehaviour
     {
         StopCoroutine("Selling");
     }
-
 }

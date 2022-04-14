@@ -1,22 +1,31 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DefaultNamespace;
 using UnityEngine;
 using DG.Tweening;
-public class Tree : MonoBehaviour
+public class Tree : MonoBehaviour, IChoppable
 {
+   [SerializeField] private int _id;
+    public int Id {
+        get => _id;
+        set => _id = value;
+    }
+    
     private ParticleSystem _dieParticle;
     private MeshRenderer _meshRenderer;
+    private List<Collider> _colliders = new List<Collider>();
     
     [SerializeField] private ResourceExplosion _resourceExplosion;
 
     [Tooltip("Count of resources given by the tree")]
     [SerializeField] private  int _resourceCount;
+    [Tooltip("The time in seconds after which the Tree respawns")]
+    [SerializeField] private float _respawnTime = 5f;
 
     internal int ResourceCount { get; }
     private int _health = 3;
-
-    internal Action dying; 
+    public event ChoppableDie Dying; 
     
     private int Health
     {
@@ -24,33 +33,44 @@ public class Tree : MonoBehaviour
         set
         {
             _health = value;
-            if (_health == 0)
+            if (_health <= 0)
                 Die();
         }
     }
 
     private void Die()
     {
-        dying.Invoke();
-        foreach (var boxCollider in GetComponents<BoxCollider>())
-        {
-            boxCollider.enabled = false;
-        }
-
-        _meshRenderer.enabled = false;
+        Dying?.Invoke(Id);
+        
+        SetVisibility(false);
         _dieParticle.Play();
         _resourceExplosion.Play(3, _resourceCount);
-        StartCoroutine("Destroy");
+        StartCoroutine("Respawn");
+    }
+
+    private void SetVisibility(bool isVisible)
+    {
+        foreach (var item in _colliders)
+        {
+            item.enabled = isVisible;
+        }
+
+        _meshRenderer.enabled = isVisible;
     }
 
     private void Start()
     {
         _dieParticle = GetComponentInChildren<ParticleSystem>();
         _meshRenderer = GetComponent<MeshRenderer>();
+        
+        foreach (var item in GetComponents<Collider>())
+        {
+            _colliders.Add(item);
+        }
     }
     
 
-   internal void MakeHit()
+   public void GetDamage()
    {
        transform.DOShakeRotation(0.5f, 15f, 5).OnComplete(NormalizeRotation);
        Health--;
@@ -61,9 +81,12 @@ public class Tree : MonoBehaviour
         transform.DORotate(new Vector3(0, 0, 0), 0.5f);
     }
 
-    private IEnumerator Destroy()
+    private IEnumerator Respawn()
     {
-        yield return new WaitForSeconds(3f);
-        Destroy(gameObject);
+        yield return new WaitForSeconds(_respawnTime);
+        SetVisibility(true);
+        //transform.DOShakeScale(0.5f, 1f, 3, 90f);
+        transform.DOScaleY( transform.localScale.y * 0.8f, 0.2f).SetLoops(4, LoopType.Yoyo);
+        _health = 3;
     }
 }

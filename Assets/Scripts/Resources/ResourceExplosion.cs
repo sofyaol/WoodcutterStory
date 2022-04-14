@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
@@ -11,6 +9,7 @@ public class ResourceExplosion : MonoBehaviour
     [SerializeField] private int _offsetForce = 3;
     private GameObject _resource;
     private Vector3 _offset;
+    private Spawner _resourceSpawner;
     private System.Random _random = new Random();
 
     private void Start()
@@ -18,6 +17,7 @@ public class ResourceExplosion : MonoBehaviour
         if (_resourceType == ResourceType.Wood)
         {
             _resource = (GameObject) Resources.Load("Resources/Wood");
+            _resourceSpawner = WoodSpawner.Instance;
         }
         
         if (_resourceType == ResourceType.Coin)
@@ -51,8 +51,11 @@ public class ResourceExplosion : MonoBehaviour
             int z = _random.Next(0, _offsetForce);
             
             _offset = new Vector3(x, y, z);
-            
-            GameObject instance = Instantiate(_resource, spawn, Quaternion.identity);
+
+            GameObject instance = _resourceSpawner.GetObject().gameObject; 
+            instance.transform.position = spawn;
+           // GameObject instance = Instantiate(_resource, spawn, Quaternion.identity);
+           
             instance.GetComponent<Resource>().Value = _resourceValues[i];
             instance.GetComponent<Rigidbody>().AddForce((Vector3.up + _offset) * _forceAcceleration, ForceMode.Impulse);
             // make offset of next resource instance

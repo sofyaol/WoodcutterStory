@@ -22,7 +22,7 @@ public class PlantsSpawner : MonoBehaviour
         foreach (var child in GetComponentsInChildren<GroundCube>())
         {
             //_groundCubes.Add(child);
-            _plantsParent = child.GetComponentInChildren<PlantsParent>().transform;
+            _plantsParent = child.GetComponentInChildren<DecorationsParent>().transform;
             SpawnPlantsOnCube(_plantsParent);
         }
         

@@ -1,14 +1,48 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DefaultNamespace;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Player : Singleton<Player>
+public class Player : Singleton<Player>, ICharacter
 {
-   [SerializeField] private float _health = 100f;
+    private float _health;
+    
+    [Header("Attributes")]
+    [SerializeField] private float _maxHealth = 100f;
+   [SerializeField] private float _damage = 1f;
+   
+   [Header("Resources")]
    [SerializeField] private int _wood = 0;
    [SerializeField] private int _coin = 0;
-    public float Health { get => _health; set => _health = value; }
+
+   public event Action OnCoinChange;
+   public event Action OnWoodChange;
+   public event HealthChange OnHealthChange;
+   
+   
+   
+    internal float DamageToEnemy 
+    { 
+        get => _damage; 
+        set => _damage = value;
+    }
+
+    public float Health
+    {
+        get => _health;
+        set
+        {
+            _health = value;
+            OnHealthChange.Invoke(_maxHealth, _health);
+        }
+    }
+
+    private void Start()
+    {
+        _health = _maxHealth;
+    }
 
     public int Wood
     {
@@ -33,6 +67,5 @@ public class Player : Singleton<Player>
         }
     }
 
-    public Action OnCoinChange;
-    public Action OnWoodChange;
+  
 }

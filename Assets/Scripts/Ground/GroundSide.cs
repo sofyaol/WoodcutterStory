@@ -9,8 +9,6 @@ public class GroundSide : MonoBehaviour
    [SerializeField] private GroundSideType _groundSideType; 
    internal GroundSideType GroundSideType => _groundSideType;
 
-      // public delegate void GroundSideHandler(GroundSideType groundSideType);
-  // public event GroundSideHandler OnTriggerByPlayer;
    [SerializeField] private GroundCanvas _canvas;
    [SerializeField] private BoxCollider _wall;
 

@@ -13,7 +13,7 @@ public class GroundMesh : MonoBehaviour
       set => _meshRenderer = value;
    }
 
-   void Start()
+   void Awake()
    {
       _meshRenderer = GetComponent<MeshRenderer>();
    }
